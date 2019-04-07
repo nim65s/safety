@@ -31,6 +31,14 @@ def read_requirements(fh, resolve=False):
     :param resolve: boolean. resolves referenced files.
     :return: generator
     """
+    try:
+        # Check if this is a Pipfile.lock
+        for key, data in json.load(fh)['default'].items():
+            yield Package(key=key, version=data['version'].replace('==', ''))
+        return
+    except ValueError:
+        # This is not a JSON valid file, return to the head of the file.
+        fh.seek(0)
     is_temp_file = not hasattr(fh, 'name')
     for num, line in enumerate(iter_lines(fh)):
         line = line.strip()
